@@ -2,9 +2,15 @@ import requests
 import hashlib
 import hmac
 import time
+import configparser
 
-api_key = 'your_api_key'
-api_secret = 'your_api_secret'
+
+config = configparser.ConfigParser()
+config.read('key.ini')
+
+
+api_key = config['key']['API_KEY']
+api_secret = config['key']['API_SECRET']
 base_url = 'https://api.mexc.com'
 
 def mexc_signature(query_string, secret):
@@ -14,7 +20,7 @@ def send_eth(amount, to_address):
     path = '/api/v2/private/withdraw'
     params = {
         'api_key': api_key,
-        'currency': 'ETH',
+        'currency': 'PANDORAGPT',
         'amount': amount,
         'address': to_address,
         'req_time': int(time.time() * 1000)  # Timestamp in milliseconds
@@ -31,7 +37,7 @@ def send_eth(amount, to_address):
     return response.json()
 
 # 사용 예시
-amount = '0.1'  # 송금할 이더리움의 양
-to_address = '대상 이더리움 주소'  # 송금할 주소
+amount = '3'  # 송금할 이더리움의 양
+to_address = '0x965Df5Ff6116C395187E288e5C87fb96CfB8141c'  # 송금할 주소
 result = send_eth(amount, to_address)
 print(result)
