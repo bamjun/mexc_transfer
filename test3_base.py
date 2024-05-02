@@ -12,21 +12,25 @@ config.read('key.ini')
 
 def generate_signature(secret, params):
     """Generate HMAC SHA256 signature."""
+    # Ensure the parameters are sorted by key and formatted as a query string
     query_string = '&'.join([f"{key}={value}" for key, value in sorted(params.items())])
-    return hmac.new(secret.encode(), query_string.encode(), hashlib.sha256).hexdigest()
+    # Create a HMAC SHA256 hash
+    signature = hmac.new(secret.encode(), query_string.encode(), hashlib.sha256).hexdigest()
+    return signature
 
 def post_withdraw(api_url, api_key, api_secret, params):
-    """Post a withdrawal request to the API."""
+    """Send a withdrawal request to the API."""
     headers = {
-    'Content-Type': 'application/json',
-    'X-MEXC-APIKEY': api_key
+        'Content-Type': 'application/json',
+        'X-MEXC-APIKEY': api_key
     }
-
     
-    # Timestamp is added just before sending the request to ensure it's up-to-date
+    # Add the current timestamp to the parameters
     params['timestamp'] = int(time.time() * 1000)
+    # Generate and add the signature to the parameters
     params['signature'] = generate_signature(api_secret, params)
     
+    # Send the POST request with the parameters encoded in the URL
     response = requests.post(api_url, headers=headers, data=params)
     return response.json()
 
@@ -41,9 +45,8 @@ params = {
     'amount': '3',
     'network': 'Ethereum(ERC20)',
     'memo': 'MX10086'
-    # 'withdrawOrderId': 'your_order_id',  # Optional
-    # 'remark': 'your_remark'  # Optional
 }
 
 result = post_withdraw(api_url, api_key, api_secret, params)
 print(result)
+
