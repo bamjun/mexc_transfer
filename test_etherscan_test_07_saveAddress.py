@@ -71,29 +71,26 @@ cursor = db.cursor()
 
 
 
-for x in range(20):
+for x in range(1000):
 
     transactions = get_latest_block_transactions(API_KEY)
 
     if transactions:
-        for tx in transactions:  # 최근 5개의 트랜잭션만 출력
+        for tx in transactions:  # 최근 5개의 트랜잭션만 출력 for tx in transactions[:5]:
             address_index = tx['to']
-
-            balance = address_balance(address_index)
-
-
+            balance = 0
             # 데이터베이스에 데이터 삽입
+            if address_index == None or address_index == 0:
+                print(address_index)
+                print(type(address_index))
+                continue
             query = "INSERT INTO address (address, balance) VALUES (%s, %s) ON DUPLICATE KEY UPDATE balance=%s"
             cursor.execute(query, (address_index, balance, balance))
             db.commit()
-
-            time.sleep(0.1)
-
     else:
         print("Failed to retrieve transactions")
 
-    time.sleep(2)
-
+    time.sleep(4)
 
 cursor.close()
 db.close()

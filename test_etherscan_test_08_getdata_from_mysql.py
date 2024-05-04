@@ -70,30 +70,12 @@ db = mysql.connector.connect(**db_config)
 cursor = db.cursor()
 
 
-
-for x in range(20):
-
-    transactions = get_latest_block_transactions(API_KEY)
-
-    if transactions:
-        for tx in transactions:  # 최근 5개의 트랜잭션만 출력
-            address_index = tx['to']
-
-            balance = address_balance(address_index)
-
-
-            # 데이터베이스에 데이터 삽입
-            query = "INSERT INTO address (address, balance) VALUES (%s, %s) ON DUPLICATE KEY UPDATE balance=%s"
-            cursor.execute(query, (address_index, balance, balance))
-            db.commit()
-
-            time.sleep(0.1)
-
-    else:
-        print("Failed to retrieve transactions")
-
-    time.sleep(2)
-
+cursor.execute("SELECT id, address FROM address order by id asc")
+addresses = cursor.fetchall()
+file_path = 'address.txt'
+with open(file_path, 'w', encoding='utf-8') as file:  # Set encoding to utf-8
+    for id, address in addresses:
+        file.write(f"{id}: {address}\n")
 
 cursor.close()
 db.close()

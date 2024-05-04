@@ -1,7 +1,7 @@
 import requests
 import configparser
 import mysql.connector
-import time
+
 
 config = configparser.ConfigParser()
 config.read('key.ini')
@@ -44,7 +44,7 @@ def get_latest_block_transactions(api_key):
         if tx_response.status_code == 200:
             transactions = tx_response.json()['result']['transactions']
             return transactions
-    return 0
+    return None
 
 
 def address_balance(address):
@@ -60,9 +60,8 @@ def address_balance(address):
         data = response.json()
         if data["status"] == "1":
             balance = int(data["result"]) / 10**18  # Wei 단위를 ETH로 변환
-            return balance
-        
-    return 0
+
+    return balance
 
 
 # 데이터베이스에 연결
@@ -70,29 +69,22 @@ db = mysql.connector.connect(**db_config)
 cursor = db.cursor()
 
 
+transactions = get_latest_block_transactions(API_KEY)
 
-for x in range(20):
+if transactions:
+    for tx in transactions:  # 최근 5개의 트랜잭션만 출력
+        address_index = tx['to']
 
-    transactions = get_latest_block_transactions(API_KEY)
-
-    if transactions:
-        for tx in transactions:  # 최근 5개의 트랜잭션만 출력
-            address_index = tx['to']
-
-            balance = address_balance(address_index)
+        balance = address_balance(address_index)
 
 
-            # 데이터베이스에 데이터 삽입
-            query = "INSERT INTO address (address, balance) VALUES (%s, %s) ON DUPLICATE KEY UPDATE balance=%s"
-            cursor.execute(query, (address_index, balance, balance))
-            db.commit()
+        # 데이터베이스에 데이터 삽입
+        query = "INSERT INTO address (address, balance) VALUES (%s, %s) ON DUPLICATE KEY UPDATE balance=%s"
+        cursor.execute(query, (address_index, balance, balance))
+        db.commit()
 
-            time.sleep(0.1)
-
-    else:
-        print("Failed to retrieve transactions")
-
-    time.sleep(2)
+else:
+    print("Failed to retrieve transactions")
 
 
 cursor.close()
