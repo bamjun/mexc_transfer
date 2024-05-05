@@ -70,12 +70,30 @@ db = mysql.connector.connect(**db_config)
 cursor = db.cursor()
 
 
-cursor.execute("SELECT id, address FROM address order by id asc")
+# cursor.execute("SELECT id, address FROM address order by id asc")
+# addresses = cursor.fetchall()
+# file_path = 'address.txt'
+# with open(file_path, 'w', encoding='utf-8') as file:  # Set encoding to utf-8
+#     for id, address in addresses[2544:]:
+#         file.write(f"{id}: {address}\n")
+
+
+
+cursor.execute("SELECT address FROM address order by id asc")
 addresses = cursor.fetchall()
-file_path = 'address.txt'
-with open(file_path, 'w', encoding='utf-8') as file:  # Set encoding to utf-8
-    for id, address in addresses:
-        file.write(f"{id}: {address}\n")
+
+for address in addresses[5267:]:
+    address = address[0]
+
+    balance = address_balance(address)
+
+    query = "INSERT INTO address2 (address, balance) VALUES (%s, %s) ON DUPLICATE KEY UPDATE balance=%s"
+    cursor.execute(query, (address, balance, balance))
+    db.commit()
+
+    time.sleep(0.1)
+
+
 
 cursor.close()
 db.close()
